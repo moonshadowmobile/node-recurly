@@ -11,6 +11,9 @@
 		"Sean Hankins <sean@moonshadowmobile.com> (http://github.com/bungler)",
 		"Ryan Olds <ryanrolds@gmail.com> (http://github.com/ryanrolds)"
 	],
+	"scripts": {
+		"test": "npm install; ./node_modules/.bin/vows test/*.test.js --spec"
+ 	},
 	"repository" : {
 		"type" : "git",
 		"url" : "git://github.com/moonshadowmobile/node-recurly.git"
@@ -22,7 +25,8 @@
 	    "xml2js": "= 0.1.13"
 	},
 	"devDependencies" : {
-	    "mocha": "= 1.0.3"
+	    "vows": "= 0.5.13",
+	    "should": ""
 	},
 	"engines" : { 
 		"node" : ">= 0.4.12"
