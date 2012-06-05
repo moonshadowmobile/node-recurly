@@ -14,11 +14,10 @@ Installation
 add a config file to your project that has contents similar to:
 
 		module.exports = {
-			API_USERNAME: 'secret',
-			API_PASSWORD: 'secret',
-			PRIVATE_KEY:  'secret',
-			SUBDOMAIN:    '[your_account]',
-			ENVIRONMENT:  'sandbox',
+			API_KEY: "",
+			PRIVATE_KEY: "",
+			SUBDOMAIN: "",
+			ENVIRONMENT: "",
 			DEBUG: false
 		};
 
