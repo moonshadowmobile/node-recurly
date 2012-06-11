@@ -1,3 +1,5 @@
 config.js
 test.js
 *~
+npm-debug.log
+node_modules
