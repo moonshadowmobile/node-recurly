@@ -1,10 +1,11 @@
 var vows = require("vows");
 var should = require("should");
 var config = require("../config");
+var testData = require("./testData");
 
-//Note: Tests should only be run on a Recurly account that is in developement mode (sandbox mode).
-//Advisable to clear all test data and delete existing plans prior to running.
-//Don't forget to put configuration settings into the config object below. 
+// Note: Tests should only be run on a Recurly account that is in developement mode (sandbox mode).
+// Advisable to clear all test data and delete existing plans prior to running.
+// Don't forget to put configuration settings into the config object below. 
 
 var Recurly;
 var recurly;
@@ -29,22 +30,18 @@ var generated_uuids = {};
 
 var validate_results = function(result){
 	should.exist(result);
-	result.should.have.property("status");
-	result.status.should.equal("ok");
-	result.should.have.property("data");
-	result.data.should.be.a("object");
+	result.should.be.a("object");
 };
 
 var no_results_expected = function(result){
-	result.data.should.have.property("description");
-	result.data.description.should.equal(204);
+	result.should.equal(204);
 };
 
 var evaluate_results = function(result, type, itemType){
 	var result_storage = {
 		"type": type
 	};
-	if(!!result.data[itemType]){
+	if(!!result[itemType]){
 		if(toString.call(result.data[itemType]) == "[object Object]"){
 			if(result.data[itemType].uuid)
 				generated_uuids[itemType + " " + type + " " + "0"] = result.data[itemType].uuid;
@@ -108,7 +105,7 @@ var create_account_details = {
 var create_adjustment_details = {
 	"currency": "USD",
 	"unit_amount_in_cents": 5000,
-	"description": "Description of the adjustment for the invoice",
+	"descripstion": "Description of the adjustment for the invoice",
 	"quantity": 1,
 	"accounting_code": "test_accounting_code_adjustment"
 };
@@ -119,54 +116,7 @@ var redeem_coupon_details = {
 };
 
 var plan_code = "test_plan_code";
-var create_plans_details = {
-	"plan_code": plan_code,
-	"name": "Test Plan Code",
-	"description": "Optional plan description.",
-	"accounting_code": "acc_plan_1",
-	"plan_interval_unit": "months",
-	"plan_interval_length": 1,
-	"trial_interval_unit": "days",
-	"trial_interval_length": 7,
-	"setup_fee_in_cents": {
-		"USD": 1000,
-		"EUR": 800
-	},
-	"unit_amount_in_cents": {
-		"USD": 500,
-		"EUR": 400
-	},
-	"total_billing_cycles": null,
-	"unit_name": "units",
-	"display_quantity": true,
-	"success_url": "http://moonshadowmobile.com",
-	"cancel_url": "http://google.com"
-};
-
-var additional_plan_code = "test_plan_code_two";
-var create_additional_plans_details = {
-	"plan_code": additional_plan_code,
-	"name": "Test Plan Code Two",
-	"description": "Optional plan description Two.",
-	"accounting_code": "acc_plan_3",
-	"plan_interval_unit": "months",
-	"plan_interval_length": 3,
-	"trial_interval_unit": "days",
-	"trial_interval_length": 8,
-	"setup_fee_in_cents": {
-		"USD": 6000,
-		"EUR": 300
-	},
-	"unit_amount_in_cents": {
-		"USD": 1100,
-		"EUR": 330
-	},
-	"total_billing_cycles": null,
-	"unit_name": "units",
-	"display_quantity": true,
-	"success_url": "http://moonshadowmobile.com",
-	"cancel_url": "http://google.com"
-};
+var additional_plan_code = 'test_plan_code_two';
 
 var coupon_code = "test_coupon_id";
 var create_coupon_details = {
@@ -286,29 +236,6 @@ var update_billing_info = {
 	"verification_value": "321"
 };
 
-var update_plans_details = {
-	"name": "Code Plan Test",
-	"description": "Description plan optional.",
-	"accounting_code": "acc_plan_2",
-	"plan_interval_unit": "months",
-	"plan_interval_length": 2,
-	"trial_interval_unit": "months",
-	"trial_interval_length": 2,
-	"setup_fee_in_cents": {
-		"USD": 2000,
-		"EUR": 1600,
-	},
-	"unit_amount_in_cents": {
-		"USD": 1500,
-		"EUR": 700
-	},
-	"total_billing_cycles": 1,
-	"unit_name": "boxes",
-	"display_quantity": false,
-	"success_url": "http://cnn.com",
-	"cancel_url": "http://recurly.com"
-};
-
 var create_transaction_details = {
 	"account": {
 		"account_code": account_code,
@@ -320,297 +247,7 @@ var create_transaction_details = {
 };
 
 var tests = {
-	"Recurly API Config Test" : {
-		"config requirements" : {
-			topic: config,
-			"exists": function(config){
-				should.exist(config);
-			},
-			"is an object": function(config){
-				config.should.be.a("object");
-			},
-			"API_KEY": {
-				topic: config.API_KEY,
-				"exists": function(API_KEY){
-					should.exist(API_KEY);
-				},
-				"is a string": function(API_KEY){
-					API_KEY.should.be.a("string");
-				},
-				"has length > 0": function(API_KEY){
-					API_KEY.length.should.be.above(0);
-				}
-			},
-			"PRIVATE_KEY": {
-				topic: config.PRIVATE_KEY,
-				"exists": function(PRIVATE_KEY){
-					should.exist(PRIVATE_KEY);
-				},
-				"is a string": function(PRIVATE_KEY){
-					PRIVATE_KEY.should.be.a("string");
-				},
-				"has length > 0": function(PRIVATE_KEY){
-					PRIVATE_KEY.length.should.be.above(0);
-				}
-			},
-			"SUBDOMAIN": {
-				topic: config.SUBDOMAIN,
-				"is a string": function(SUBDOMAIN){
-					SUBDOMAIN.should.be.a("string");
-				}
-			},
-			"ENVIRONMENT": {
-				topic: config.ENVIRONMENT,
-				"is a string": function(ENVIRONMENT){
-					ENVIRONMENT.should.be.a("string");
-				}
-			},
-			"DEBUG": {
-				topic: config.DEBUG,
-				"is a boolean": function(DEBUG){
-					DEBUG.should.be.a("boolean");
-				}
-			}
-		}
-	},
-	"Recurly API Library Test": {
-		"require recurly.js": {
-			topic: function(){
-				Recurly = require('../lib/recurly');
-				return Recurly;
-			},
-			"Recurly class is a function": function(){
-				should.isFunction(Recurly);
-			}
-		},
-		"recurly instance": {
-			topic: function(){
-				recurly = new Recurly(config);
-				return recurly;
-			},
-			"is an object": function(){
-				recurly.should.be.a("object");
-			},
-			"accounts": {
-				topic: function(){
-					return recurly.accounts;
-				},
-				"is an object": function(accounts){
-					accounts.should.be.a("object");
-				}
-			},
-			"adjustments": {
-				topic: function(){
-					return recurly.adjustments;
-				},
-				"is an object": function(adjustments){
-					adjustments.should.be.a("object");
-				}
-			},
-			"billingInfo": {
-				topic: function(){
-					return recurly.billingInfo;
-				},
-				"is an object": function(billingInfo){
-					billingInfo.should.be.a("object");
-				}
-			},
-			"coupons": {
-				topic: function(){
-					return recurly.coupons;
-				},
-				"is an object": function(coupons){
-					coupons.should.be.a("object");
-				}
-			},
-			"redemptions": {
-				topic: function(){
-					return recurly.redemptions;
-				},
-				"is an object": function(redemptions){
-					redemptions.should.be.a("object");
-				}
-			},
-			"invoices": {
-				topic: function(){
-					return recurly.invoices;
-				},
-				"is an object": function(invoices){
-					invoices.should.be.a("object");
-				}
-			},
-			"plans": {
-				topic: function(){
-					return recurly.plans;
-				},
-				"is an object": function(plans){
-					plans.should.be.a("object");
-				}
-			},
-			"planAddons": {
-				topic: function(){
-					return recurly.planAddons;
-				},
-				"is an object": function(planAddons){
-					planAddons.should.be.a("object");
-				}
-			},
-			"subscriptions": {
-				topic: function(){
-					return recurly.subscriptions;
-				},
-				"is an object": function(subscriptions){
-					subscriptions.should.be.a("object");
-				}
-			},
-			"transactions": {
-				topic: function(){
-					return recurly.transactions;
-				},
-				"is an object": function(transactions){
-					transactions.should.be.a("object");
-				}
-			}
-		}
-	},
-	"Recurly Plans Tests": {
-		"plans list": {
-			topic: function() {
-				return recurly.plans.list;
-			},
-			"is a function": function(list){
-				should.isFunction(list);
-			},
-			"list": {
-				topic: function() {
-					recurly.plans.list(null, null, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					plans_test_results.push(evaluate_results(result, "list", "plan"));
-				}
-			}
-		},
-		"plans create": {
-			topic: function() {
-				return recurly.plans.create;
-			},
-			"is a function": function(create){
-				should.isFunction(create);
-			},
-			"create": {
-				topic: function() {
-					recurly.plans.create(create_plans_details, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					result.data.should.have.property("plan_code");
-					result.data.plan_code.should.equal(plan_code);
-				}
-			}
-		},
-		"plans create additional": {
-			topic: function() {
-				return recurly.plans.create;
-			},
-			"is a function": function(create){
-				should.isFunction(create);
-			},
-			"create": {
-				topic: function() {
-					recurly.plans.create(create_additional_plans_details, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					result.data.should.have.property("plan_code");
-					result.data.plan_code.should.equal(additional_plan_code);
-				}
-			}
-		},
-		"plans get": {
-			topic: function() {
-				return recurly.plans.get;
-			},
-			"is a function": function(get){
-				should.isFunction(get);
-			},
-			"get plan": {
-				topic: function() {
-					recurly.plans.get(plan_code, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					result.data.should.have.property("plan_code");
-					result.data.plan_code.should.equal(plan_code);
-				}
-			}
-		},
-		"plans update": {
-			topic: function() {
-				return recurly.plans.update;
-			},
-			"is a function": function(update){
-				should.isFunction(update);
-			},
-			"update plan": {
-				topic: function() {
-					recurly.plans.update(plan_code, update_plans_details, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					result.data.should.have.property("name");
-					result.data.name.should.equal(update_plans_details.name);
-				}
-			}
-		},
-		"plans delete": {
-			topic: function() {
-				return recurly.plans.deletePlan;
-			},
-			"is a function": function(deletePlan){
-				should.isFunction(deletePlan);
-			},
-			"delete plan": {
-				topic: function() {
-					recurly.plans.deletePlan(plan_code, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					no_results_expected(result);
-				}
-			}
-		}
-	},
+
 	"Recurly Subscriptions Tests": {
 		"subscriptions list": {
 			topic: function() {
@@ -1226,188 +863,6 @@ var tests = {
 				},
 				"results evaluated": function(error, result){
 					no_results_expected(result);
-				}
-			}
-		}
-	},
-	"Recurly Accounts Tests": {
-		"accounts list": {
-			topic: function() {
-				return recurly.accounts.list;
-			},
-			"is a function": function(list){
-				should.isFunction(list);
-			},
-			"all": {
-				topic: function() {
-					recurly.accounts.list(null, null, null, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					account_test_results.push(evaluate_results(result, "all", "account"));
-				}
-			},
-			"active": {
-				topic: function() {
-					recurly.accounts.list("active", null, null, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					account_test_results.push(evaluate_results(result, "active", "account"));
-				}
-			},
-			"closed": {
-				topic: function() {
-					recurly.accounts.list("closed", null, null, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					account_test_results.push(evaluate_results(result, "closed", "account"));
-				}
-			},
-			"past_due": {
-				topic: function() {
-					recurly.accounts.list("past_due", null, null, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					account_test_results.push(evaluate_results(result, "past_due", "account"));
-				}
-			}
-		},
-		"accounts create": {
-			topic: function() {
-				return recurly.accounts.create;
-			},
-			"is a function": function(create){
-				should.isFunction(create);
-			},
-			"create account": {
-				topic: function() {
-					recurly.accounts.create(create_account_details, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					result.data.should.have.property("account_code");
-					result.data.account_code.should.equal(account_code);
-				}
-			}
-		},
-		"accounts get": {
-			topic: function(){
-				return recurly.accounts.get;
-			},
-			"is a function": function(get){
-				should.isFunction(get);
-			},
-			"get account":{
-				topic: function() {
-					recurly.accounts.get(account_code, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					result.data.should.have.property("account_code");
-					result.data.account_code.should.equal(account_code);
-				}
-			}
-		},
-		"accounts update": {
-			topic: function(){
-				return recurly.accounts.update;
-			},
-			"is a function": function(update){
-				should.isFunction(update);
-			},
-			"update account":{
-				topic: function() {
-					recurly.accounts.update(account_code, update_account_details, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					result.data.should.have.property("company_name");
-					result.data.company_name.should.equal(update_account_details.company_name);
-					result.data.should.have.property("last_name");
-					result.data.last_name.should.equal(update_account_details.last_name);
-				}
-			}
-		},
-		"accounts close": {
-			topic: function(){
-				return recurly.accounts.close;
-			},
-			"is a function": function(close){
-				should.isFunction(close);
-			},
-			"close account":{
-				topic: function() {
-					recurly.accounts.close(account_code, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					no_results_expected(result);
-				}
-			}
-		},
-		"accounts reopen": {
-			topic: function(){
-				return recurly.accounts.reopen;
-			},
-			"is a function": function(reopen){
-				should.isFunction(reopen);
-			},
-			"reopen account":{
-				topic: function() {
-					recurly.accounts.reopen(account_code, this.callback);
-				},
-				"no error": function(error, result){
-					should.not.exist(error);
-				},
-				"validate results": function(error, result){
-					validate_results(result);
-				},
-				"results evaluated": function(error, result){
-					result.data.should.have.property("account_code");
-					result.data.account_code.should.equal(account_code);
 				}
 			}
 		}
@@ -2374,111 +1829,6 @@ var configTest = function(){
 	});
 };
 
-//----------------Testing Subscription Plans----------------
-var plansTest = function(){
-	//Get List of plans
-	testsToRun.push({
-		"name": "Recurly Plans First List",
-		"tests": {
-			"First List": tests["Recurly Plans Tests"]["plans list"]
-		}
-	});
-	//Create new plan
-	testsToRun.push({
-		"name": "Recurly Create Plan",
-		"tests": {
-			"plans create": tests["Recurly Plans Tests"]["plans create"]
-		}
-	});
-	//List plans again
-	testsToRun.push({
-		"name": "Recurly Plans Second List",
-		"tests": {
-			"Second List": tests["Recurly Plans Tests"]["plans list"]
-		}
-	});
-	//number of plans should be incremented by one, reset results
-	testsToRun.push({
-		"name": "Recurly Plans Results Output",
-		"tests": {
-			"plans_test_results consoled": tests["Recurly Count Results Output"]["plans_test_results consoled"],
-			"compare": {
-				"plus one plan": tests["Recurly Count Results Output"]["plans_test_results compared"]["plus one plan"]
-			},
-			"plans_test_results reset": tests["Recurly Count Results Output"]["plans_test_results reset"]
-		}
-	});
-	//get plan by name
-	testsToRun.push({
-		"name": "Recurly Get Plan",
-		"tests": {
-			"plans get": tests["Recurly Plans Tests"]["plans get"]
-		}
-	});
-	//update plan
-	testsToRun.push({
-		"name": "Recurly Update Plan",
-		"tests": {
-			"plans update": tests["Recurly Plans Tests"]["plans update"]
-		}
-	});
-	//get plan after update
-	testsToRun.push({
-		"name": "Recurly Get Plan",
-		"tests": {
-			"plans get 2": tests["Recurly Plans Tests"]["plans get"]
-		}
-	});
-	//list plans again
-	testsToRun.push({
-		"name": "Recurly Plans Third List",
-		"tests": {
-			"Third List": tests["Recurly Plans Tests"]["plans list"]
-		}
-	});
-	//delete the plan
-	testsToRun.push({
-		"name": "Recurly Delete Plan",
-		"tests": {
-			"plans delete": tests["Recurly Plans Tests"]["plans delete"]
-		}
-	});
-	//list plans last time to get a count
-	testsToRun.push({
-		"name": "Recurly Plans Fourth List",
-		"tests": {
-			"Fourth List": tests["Recurly Plans Tests"]["plans list"]
-		}
-	});
-	//compare list, plan count should be decremented by one
-	testsToRun.push({
-		"name": "Recurly Plans Results Output 2",
-		"tests": {
-			"plans_test_results compared": {
-				"plans_test_results consoled": tests["Recurly Count Results Output"]["plans_test_results consoled"],
-				"compare": {
-					"minus one plan": tests["Recurly Count Results Output"]["plans_test_results compared"]["minus one plan"]
-				},
-				"plans_test_results reset": tests["Recurly Count Results Output"]["plans_test_results reset"]
-			}
-		}
-	});
-	//Add 2 plans for further testing
-	testsToRun.push({
-		"name": "Recurly Create Plan Again",
-		"tests": {
-			"plans create": tests["Recurly Plans Tests"]["plans create"]
-		}
-	});
-	testsToRun.push({
-		"name": "Recurly Create Additional Plan",
-		"tests": {
-			"plans create additional": tests["Recurly Plans Tests"]["plans create additional"]
-		}
-	});
-};
-//-----
-
 //----------------Recurly Add-ons Tests----------------
 var addonsTest = function(){
 	//List addons
@@ -3040,9 +2390,9 @@ testsToRun.push({
 	"name": "Recurly API Library Test",
 	"tests": tests["Recurly API Library Test"]
 });
-plansTest();
+
 addonsTest();
-accountsTest();
+//accountsTest();
 billinginfoTest();
 subscriptionTest();
 adjustmentsTest();
